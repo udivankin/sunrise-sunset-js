@@ -1,6 +1,6 @@
 {
   "name": "sunrise-sunset-js",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "High-precision sunrise and sunset time calculation using NREL's Solar Position Algorithm",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -26,7 +26,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "type-check": "tsc --noEmit",
-    "prepublishOnly": "npm run type-check && npm run build && npm test"
+    "tag": "node scripts/tag.js",
+    "prepublishOnly": "npm run tag && npm run type-check && npm run build && npm test"
   },
   "devDependencies": {
     "@types/node": "24.10.2",
