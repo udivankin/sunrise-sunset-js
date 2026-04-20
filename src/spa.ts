@@ -14,6 +14,7 @@ import {
   julianEphemerisDay,
   julianEphemerisCentury,
   julianEphemerisMillennium,
+  resolveDateTimeComponents,
 } from './utils/date';
 import {
   earthHeliocentricLongitude,
@@ -347,20 +348,19 @@ export function initSpaFromDate(
   options: SpaOptions = {}
 ): SpaData {
   const spa = createSpaData();
+  const dateTime = resolveDateTimeComponents(
+    date,
+    options.timezone,
+    options.timezoneId
+  );
 
-  // Use local time components
-  spa.year = date.getFullYear();
-  spa.month = date.getMonth() + 1;
-  spa.day = date.getDate();
-  spa.hour = date.getHours();
-  spa.minute = date.getMinutes();
-  spa.second = date.getSeconds() + date.getMilliseconds() / 1000;
-
-  if (options.timezone !== undefined) {
-    spa.timezone = options.timezone;
-  } else {
-    spa.timezone = -date.getTimezoneOffset() / 60;
-  }
+  spa.year = dateTime.year;
+  spa.month = dateTime.month;
+  spa.day = dateTime.day;
+  spa.hour = dateTime.hour;
+  spa.minute = dateTime.minute;
+  spa.second = dateTime.second;
+  spa.timezone = dateTime.timezone;
 
   spa.timezoneId = options.timezoneId ?? '';
 

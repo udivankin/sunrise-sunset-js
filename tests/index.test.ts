@@ -112,4 +112,18 @@ describe('SunriseSunsetJS library', () => {
     expect(sunrise).toBeNull();
     expect(sunset).toBeNull();
   });
+
+  it('should honor timezoneId when timezone is omitted', () => {
+    const date = new Date("2024-06-21T12:00:00Z");
+    const utc = getSunTimes(16, 108, date, { timezoneId: 'UTC' });
+    const hoChiMinh = getSunTimes(16, 108, date, { timezoneId: 'Asia/Ho_Chi_Minh' });
+    const explicitOffset = getSunTimes(16, 108, date, { timezone: 7 });
+
+    expect(utc.sunrise).not.toBeNull();
+    expect(hoChiMinh.sunrise).not.toBeNull();
+    expect(explicitOffset.sunrise).not.toBeNull();
+
+    expect(hoChiMinh.sunrise!.getTime()).toBe(explicitOffset.sunrise!.getTime());
+    expect(hoChiMinh.sunrise!.getTime()).not.toBe(utc.sunrise!.getTime());
+  });
 });

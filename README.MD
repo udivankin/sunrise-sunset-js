@@ -244,11 +244,15 @@ interface SpaOptions {
   pressure?: number;       // Atmospheric pressure in mbar (default: 1013)
   deltaT?: number;         // Earth rotation correction in seconds (default: 67)
   elevation?: number;      // Observer elevation in meters (default: 0)
-  timezone?: number;       // Explicit timezone offset in hours (e.g. -5)
-  timezoneId?: string;     // IANA Timezone ID (e.g. 'America/New_York')
+  timezone?: number;       // Explicit timezone offset in hours (e.g. -5). Takes precedence over timezoneId
+  timezoneId?: string;     // IANA Timezone ID used to resolve the local date and UTC offset when timezone is omitted
   atmosphericRefraction?: number; // Refraction at horizon in degrees (default: 0.5667)
 }
 ```
+
+Returned values are JavaScript `Date` objects, which always represent absolute instants.
+If you want to display the result in a specific timezone, format it with `Intl.DateTimeFormat`
+or `toLocaleString(..., { timeZone: 'America/New_York' })`.
 
 **Example:**
 

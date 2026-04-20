@@ -16,13 +16,17 @@ export function dayfracToLocalHr(dayfrac: number, timezone: number): number {
 
 /**
  * Convert fractional hours to Date object
- * @param date - Base date (used for year, month, day)
+ * @param year - Local calendar year for the calculated sun time
+ * @param month - Local calendar month for the calculated sun time
+ * @param day - Local calendar day for the calculated sun time
  * @param fractionalHour - Hour as fractional value (0-24)
  * @param timezone - Timezone offset in hours (negative west of Greenwich)
  * @returns Date object representing the time
  */
 export function fractionalHourToDate(
-  date: Date,
+  year: number,
+  month: number,
+  day: number,
   fractionalHour: number,
   timezone: number
 ): Date {
@@ -39,12 +43,12 @@ export function fractionalHourToDate(
   const seconds = Math.floor(secondsDecimal);
   const milliseconds = Math.round((secondsDecimal - seconds) * 1000);
 
-  // Create a new date starting from the base date at midnight UTC
+  // Create a new date starting from the local calendar day at midnight UTC
   const result = new Date(
     Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate(),
+      year,
+      month - 1,
+      day,
       0, 0, 0, 0
     )
   );

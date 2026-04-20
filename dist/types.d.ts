@@ -53,9 +53,9 @@ export interface SpaOptions {
     azimuthRotation?: number;
     /** Atmospheric refraction at sunrise/sunset in degrees (default: 0.5667) */
     atmosphericRefraction?: number;
-    /** Timezone offset in hours from UTC (e.g., -5 for EST) */
+    /** Timezone offset in hours from UTC (e.g., -5 for EST). Takes precedence over timezoneId. */
     timezone?: number;
-    /** IANA Timezone ID (e.g., 'America/New_York') */
+    /** IANA Timezone ID (e.g., 'America/New_York'). Used to resolve the correct local date and UTC offset when timezone is omitted. */
     timezoneId?: string;
 }
 /**

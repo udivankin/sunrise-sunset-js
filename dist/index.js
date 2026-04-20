@@ -1960,12 +1960,14 @@ function dayfracToLocalHr(dayfrac, timezone) {
 }
 /**
 * Convert fractional hours to Date object
-* @param date - Base date (used for year, month, day)
+* @param year - Local calendar year for the calculated sun time
+* @param month - Local calendar month for the calculated sun time
+* @param day - Local calendar day for the calculated sun time
 * @param fractionalHour - Hour as fractional value (0-24)
 * @param timezone - Timezone offset in hours (negative west of Greenwich)
 * @returns Date object representing the time
 */
-function fractionalHourToDate(date, fractionalHour, timezone) {
+function fractionalHourToDate(year, month, day, fractionalHour, timezone) {
 	if (fractionalHour < 0 || !isFinite(fractionalHour)) return /* @__PURE__ */ new Date(NaN);
 	const hours = Math.floor(fractionalHour);
 	const minutesDecimal = (fractionalHour - hours) * 60;
@@ -1973,7 +1975,7 @@ function fractionalHourToDate(date, fractionalHour, timezone) {
 	const secondsDecimal = (minutesDecimal - minutes) * 60;
 	const seconds = Math.floor(secondsDecimal);
 	const milliseconds = Math.round((secondsDecimal - seconds) * 1e3);
-	const result = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0, 0));
+	const result = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
 	const utcHours = hours - timezone;
 	result.setUTCHours(utcHours, minutes, seconds, milliseconds);
 	return result;
@@ -2022,9 +2024,41 @@ let SunState = /* @__PURE__ */ function(SunState$1) {
 
 //#endregion
 //#region src/utils/date.ts
-/**
-* Date and Julian day calculation utilities for Solar Position Algorithm
-*/
+const timeZoneDateTimeFormatters = /* @__PURE__ */ new Map();
+function getTimeZoneDateTimeFormatter(timezoneId) {
+	let formatter = timeZoneDateTimeFormatters.get(timezoneId);
+	if (!formatter) {
+		formatter = new Intl.DateTimeFormat("en-US", {
+			timeZone: timezoneId,
+			year: "numeric",
+			month: "2-digit",
+			day: "2-digit",
+			hour: "2-digit",
+			minute: "2-digit",
+			second: "2-digit",
+			hourCycle: "h23"
+		});
+		timeZoneDateTimeFormatters.set(timezoneId, formatter);
+	}
+	return formatter;
+}
+function parseDateTimeComponents(date, formatter) {
+	const values = /* @__PURE__ */ new Map();
+	for (const part of formatter.formatToParts(date)) if (part.type !== "literal") values.set(part.type, part.value);
+	return {
+		year: parseInt(values.get("year") ?? "0", 10),
+		month: parseInt(values.get("month") ?? "0", 10),
+		day: parseInt(values.get("day") ?? "0", 10),
+		hour: parseInt(values.get("hour") ?? "0", 10),
+		minute: parseInt(values.get("minute") ?? "0", 10),
+		second: parseInt(values.get("second") ?? "0", 10) + date.getUTCMilliseconds() / 1e3
+	};
+}
+function getOffsetHoursFromComponents(date, components) {
+	const wholeSeconds = Math.floor(components.second);
+	const milliseconds = Math.round((components.second - wholeSeconds) * 1e3);
+	return (Date.UTC(components.year, components.month - 1, components.day, components.hour, components.minute, wholeSeconds, milliseconds) - date.getTime()) / 36e5;
+}
 /**
 * Calculate Julian Day from calendar date and time
 * @param year - 4-digit year
@@ -2084,6 +2118,61 @@ function julianEphemerisCentury(jde) {
 */
 function julianEphemerisMillennium(jce) {
 	return jce / 10;
+}
+/**
+* Extract date components from a JavaScript Date object
+* Returns components in local time
+*/
+function extractLocalDateComponents(date) {
+	return {
+		year: date.getFullYear(),
+		month: date.getMonth() + 1,
+		day: date.getDate(),
+		hour: date.getHours(),
+		minute: date.getMinutes(),
+		second: date.getSeconds() + date.getMilliseconds() / 1e3,
+		timezone: -date.getTimezoneOffset() / 60
+	};
+}
+/**
+* Extract date components from a JavaScript Date object
+* Interprets the instant in a fixed UTC offset
+*/
+function extractFixedOffsetDateComponents(date, timezone) {
+	const shifted = new Date(date.getTime() + timezone * 36e5);
+	return {
+		year: shifted.getUTCFullYear(),
+		month: shifted.getUTCMonth() + 1,
+		day: shifted.getUTCDate(),
+		hour: shifted.getUTCHours(),
+		minute: shifted.getUTCMinutes(),
+		second: shifted.getUTCSeconds() + shifted.getUTCMilliseconds() / 1e3
+	};
+}
+/**
+* Extract date components from a JavaScript Date object
+* Interprets the instant in the provided IANA timezone
+*/
+function extractTimeZoneDateComponents(date, timezoneId) {
+	return parseDateTimeComponents(date, getTimeZoneDateTimeFormatter(timezoneId));
+}
+/**
+* Resolve the calendar date/time context used by SPA calculations.
+* Explicit numeric offsets take precedence over timezone IDs.
+*/
+function resolveDateTimeComponents(date, timezone, timezoneId) {
+	if (timezone !== void 0) return {
+		...extractFixedOffsetDateComponents(date, timezone),
+		timezone
+	};
+	if (timezoneId) try {
+		const components = extractTimeZoneDateComponents(date, timezoneId);
+		return {
+			...components,
+			timezone: getOffsetHoursFromComponents(date, components)
+		};
+	} catch {}
+	return extractLocalDateComponents(date);
 }
 
 //#endregion
@@ -2865,14 +2954,14 @@ function spaCalculate(spa) {
 */
 function initSpaFromDate(date, latitude, longitude, options = {}) {
 	const spa = createSpaData();
-	spa.year = date.getFullYear();
-	spa.month = date.getMonth() + 1;
-	spa.day = date.getDate();
-	spa.hour = date.getHours();
-	spa.minute = date.getMinutes();
-	spa.second = date.getSeconds() + date.getMilliseconds() / 1e3;
-	if (options.timezone !== void 0) spa.timezone = options.timezone;
-	else spa.timezone = -date.getTimezoneOffset() / 60;
+	const dateTime = resolveDateTimeComponents(date, options.timezone, options.timezoneId);
+	spa.year = dateTime.year;
+	spa.month = dateTime.month;
+	spa.day = dateTime.day;
+	spa.hour = dateTime.hour;
+	spa.minute = dateTime.minute;
+	spa.second = dateTime.second;
+	spa.timezone = dateTime.timezone;
 	spa.timezoneId = options.timezoneId ?? "";
 	spa.latitude = latitude;
 	spa.longitude = longitude;
@@ -2914,7 +3003,7 @@ function isValidSunTime(time) {
 function getSunrise(latitude, longitude, date = /* @__PURE__ */ new Date(), options) {
 	const spa = initSpaFromDate(date, latitude, longitude, options);
 	if (spaCalculate(spa) !== 0 || !isValidSunTime(spa.sunrise)) return null;
-	return fractionalHourToDate(date, spa.sunrise, spa.timezone);
+	return fractionalHourToDate(spa.year, spa.month, spa.day, spa.sunrise, spa.timezone);
 }
 /**
 * Get the sunset time for a given location and date
@@ -2934,7 +3023,7 @@ function getSunrise(latitude, longitude, date = /* @__PURE__ */ new Date(), opti
 function getSunset(latitude, longitude, date = /* @__PURE__ */ new Date(), options) {
 	const spa = initSpaFromDate(date, latitude, longitude, options);
 	if (spaCalculate(spa) !== 0 || !isValidSunTime(spa.sunset)) return null;
-	return fractionalHourToDate(date, spa.sunset, spa.timezone);
+	return fractionalHourToDate(spa.year, spa.month, spa.day, spa.sunset, spa.timezone);
 }
 /**
 * Get the solar noon (sun transit) time for a given location and date
@@ -2954,7 +3043,7 @@ function getSunset(latitude, longitude, date = /* @__PURE__ */ new Date(), optio
 function getSolarNoon(latitude, longitude, date = /* @__PURE__ */ new Date(), options) {
 	const spa = initSpaFromDate(date, latitude, longitude, options);
 	if (spaCalculate(spa) !== 0 || !isValidSunTime(spa.suntransit)) return null;
-	return fractionalHourToDate(date, spa.suntransit, spa.timezone);
+	return fractionalHourToDate(spa.year, spa.month, spa.day, spa.suntransit, spa.timezone);
 }
 /**
 * Get the current solar position (zenith, azimuth, elevation, etc.)
@@ -3014,7 +3103,7 @@ function getTwilight(latitude, longitude, date = /* @__PURE__ */ new Date(), opt
 	const blue = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, ZENITH_BLUE_HOUR);
 	const toDate = (hours) => {
 		if (hours === null || !isFinite(hours) || hours < 0 || hours > 24) return null;
-		return fractionalHourToDate(date, hours, spa.timezone);
+		return fractionalHourToDate(spa.year, spa.month, spa.day, hours, spa.timezone);
 	};
 	return {
 		civilDawn: toDate(civil.sunrise),
@@ -3073,7 +3162,7 @@ function getSunTimes(latitude, longitude, date = /* @__PURE__ */ new Date(), opt
 	};
 	const toDate = (hours) => {
 		if (!isValidSunTime(hours)) return null;
-		return fractionalHourToDate(date, hours, spa.timezone);
+		return fractionalHourToDate(spa.year, spa.month, spa.day, hours, spa.timezone);
 	};
 	let twilight = null;
 	if (isValidSunTime(spa.suntransit)) {
@@ -3084,7 +3173,7 @@ function getSunTimes(latitude, longitude, date = /* @__PURE__ */ new Date(), opt
 		const blue = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, ZENITH_BLUE_HOUR);
 		const twilightToDate = (hours) => {
 			if (hours === null || !isFinite(hours) || hours < 0 || hours > 24) return null;
-			return fractionalHourToDate(date, hours, spa.timezone);
+			return fractionalHourToDate(spa.year, spa.month, spa.day, hours, spa.timezone);
 		};
 		twilight = {
 			civilDawn: twilightToDate(civil.sunrise),

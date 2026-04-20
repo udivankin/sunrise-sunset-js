@@ -1,6 +1,14 @@
 /**
  * Date and Julian day calculation utilities for Solar Position Algorithm
  */
+export interface DateTimeComponents {
+    year: number;
+    month: number;
+    day: number;
+    hour: number;
+    minute: number;
+    second: number;
+}
 /**
  * Calculate Julian Day from calendar date and time
  * @param year - 4-digit year
@@ -50,6 +58,27 @@ export declare function extractLocalDateComponents(date: Date): {
     hour: number;
     minute: number;
     second: number;
+    timezone: number;
+};
+/**
+ * Extract date components from a JavaScript Date object
+ * Interprets the instant in a fixed UTC offset
+ */
+export declare function extractFixedOffsetDateComponents(date: Date, timezone: number): DateTimeComponents;
+/**
+ * Extract date components from a JavaScript Date object
+ * Interprets the instant in the provided IANA timezone
+ */
+export declare function extractTimeZoneDateComponents(date: Date, timezoneId: string): DateTimeComponents;
+/**
+ * Get the UTC offset in hours for an IANA timezone at a specific instant
+ */
+export declare function getTimeZoneOffsetHours(date: Date, timezoneId: string): number;
+/**
+ * Resolve the calendar date/time context used by SPA calculations.
+ * Explicit numeric offsets take precedence over timezone IDs.
+ */
+export declare function resolveDateTimeComponents(date: Date, timezone?: number, timezoneId?: string): DateTimeComponents & {
     timezone: number;
 };
 /**

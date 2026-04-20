@@ -56,7 +56,13 @@ export function getSunrise(
     return null;
   }
 
-  return fractionalHourToDate(date, spa.sunrise, spa.timezone);
+  return fractionalHourToDate(
+    spa.year,
+    spa.month,
+    spa.day,
+    spa.sunrise,
+    spa.timezone
+  );
 }
 
 /**
@@ -87,7 +93,13 @@ export function getSunset(
     return null;
   }
 
-  return fractionalHourToDate(date, spa.sunset, spa.timezone);
+  return fractionalHourToDate(
+    spa.year,
+    spa.month,
+    spa.day,
+    spa.sunset,
+    spa.timezone
+  );
 }
 
 /**
@@ -118,7 +130,13 @@ export function getSolarNoon(
     return null;
   }
 
-  return fractionalHourToDate(date, spa.suntransit, spa.timezone);
+  return fractionalHourToDate(
+    spa.year,
+    spa.month,
+    spa.day,
+    spa.suntransit,
+    spa.timezone
+  );
 }
 
 /**
@@ -234,7 +252,13 @@ export function getTwilight(
     if (hours === null || !isFinite(hours) || hours < 0 || hours > 24) {
       return null;
     }
-    return fractionalHourToDate(date, hours, spa.timezone);
+    return fractionalHourToDate(
+      spa.year,
+      spa.month,
+      spa.day,
+      hours,
+      spa.timezone
+    );
   };
 
   return {
@@ -300,7 +324,13 @@ export function getSunTimes(
     if (!isValidSunTime(hours)) {
       return null;
     }
-    return fractionalHourToDate(date, hours, spa.timezone);
+    return fractionalHourToDate(
+      spa.year,
+      spa.month,
+      spa.day,
+      hours,
+      spa.timezone
+    );
   };
 
   // Calculate twilight times
@@ -345,7 +375,13 @@ export function getSunTimes(
       if (hours === null || !isFinite(hours) || hours < 0 || hours > 24) {
         return null;
       }
-      return fractionalHourToDate(date, hours, spa.timezone);
+      return fractionalHourToDate(
+        spa.year,
+        spa.month,
+        spa.day,
+        hours,
+        spa.timezone
+      );
     };
 
     twilight = {
@@ -373,4 +409,3 @@ export function getSunTimes(
     twilight,
   };
 }
-

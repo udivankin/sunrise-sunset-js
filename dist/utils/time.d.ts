@@ -10,12 +10,14 @@
 export declare function dayfracToLocalHr(dayfrac: number, timezone: number): number;
 /**
  * Convert fractional hours to Date object
- * @param date - Base date (used for year, month, day)
+ * @param year - Local calendar year for the calculated sun time
+ * @param month - Local calendar month for the calculated sun time
+ * @param day - Local calendar day for the calculated sun time
  * @param fractionalHour - Hour as fractional value (0-24)
  * @param timezone - Timezone offset in hours (negative west of Greenwich)
  * @returns Date object representing the time
  */
-export declare function fractionalHourToDate(date: Date, fractionalHour: number, timezone: number): Date;
+export declare function fractionalHourToDate(year: number, month: number, day: number, fractionalHour: number, timezone: number): Date;
 /**
  * Convert fractional hours to time string (HH:MM:SS.mmm)
  * @param fractionalHour - Hour as fractional value (0-24)
