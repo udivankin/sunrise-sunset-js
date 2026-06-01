@@ -37,6 +37,7 @@ Solar Radiation Research Laboratory
 - ✅ **Zero dependencies** for runtime
 - ✅ **Extended solar calculations** (solar noon, solar position, etc.)
 - ✅ **Comprehensive timezone support** (implicit and explicit)
+- ✅ **Native Temporal support** via `sunrise-sunset-js/temporal`
 - ✅ **Tree-shakeable** modular architecture
 
 ## Installation
@@ -60,6 +61,81 @@ const sunset = getSunset(51.5074, -0.1278, new Date('2024-06-21'));
 
 console.log(`Sunrise: ${sunrise?.toLocaleTimeString()}`);
 console.log(`Sunset: ${sunset?.toLocaleTimeString()}`);
+```
+
+## Native Temporal API
+
+The main entrypoint keeps returning JavaScript `Date` objects for backward compatibility.
+If your runtime supports native Temporal, import the Temporal entrypoint instead:
+
+```typescript
+import { getSunTimes } from 'sunrise-sunset-js/temporal';
+
+const times = getSunTimes(
+  40.7128,
+  -74.0060,
+  Temporal.PlainDate.from('2026-05-03'),
+  { timezoneId: 'America/New_York' }
+);
+
+console.log(times.sunrise?.toString()); // Temporal.Instant
+console.log(
+  times.sunrise
+    ?.toZonedDateTimeISO('America/New_York')
+    .toPlainTime()
+    .toString({ smallestUnit: 'minute' })
+); // Local wall-clock time, e.g. "05:37"
+```
+
+The Temporal entrypoint exports the same function names as the main package:
+
+```typescript
+import {
+  getSunrise,
+  getSunset,
+  getSolarNoon,
+  getTwilight,
+  getSunTimes,
+} from 'sunrise-sunset-js/temporal';
+```
+
+These functions return `Temporal.Instant | null` instead of `Date | null`, and the `date`
+argument accepts `Date`, `Temporal.Instant`, `Temporal.ZonedDateTime`,
+`Temporal.PlainDateTime`, or `Temporal.PlainDate`.
+
+Native Temporal is required only when calling `sunrise-sunset-js/temporal`. The main
+`sunrise-sunset-js` entrypoint still works in Node.js 18+ and returns `Date` values.
+
+### Temporal with `geo-tz`
+
+`sunrise-sunset-js` does not depend on timezone boundary data. In Node.js or server-side
+code, you can derive the IANA timezone from latitude/longitude with a package such as
+`geo-tz`:
+
+```bash
+npm install sunrise-sunset-js geo-tz
+```
+
+```typescript
+import { find } from 'geo-tz';
+import { getSunTimes } from 'sunrise-sunset-js/temporal';
+
+const latitude = 40.7128;
+const longitude = -74.0060;
+const timezoneId = find(latitude, longitude)[0]; // "America/New_York"
+
+const times = getSunTimes(
+  latitude,
+  longitude,
+  Temporal.PlainDate.from('2026-05-03'),
+  { timezoneId }
+);
+
+const sunriseClockTime = times.sunrise
+  ?.toZonedDateTimeISO(timezoneId)
+  .toPlainTime();
+
+console.log(sunriseClockTime?.toString({ smallestUnit: 'minute' }));
 ```
 
 ## API Reference
@@ -362,6 +438,7 @@ if (isGoldenHour(51.5074, -0.1278, now)) {
 ```
 src/
 ├── index.ts                    # Main API exports
+├── temporal.ts                 # Native Temporal API exports
 ├── types.ts                    # TypeScript type definitions
 ├── constants.ts                # Physical constants & periodic terms
 ├── spa.ts                      # Main SPA calculation orchestrator
@@ -453,6 +530,9 @@ npm run prepublishOnly
 - `dist/index.js` - ESM bundle with source maps
 - `dist/index.cjs` - CommonJS bundle with source maps
 - `dist/index.d.ts` - TypeScript declarations
+- `dist/temporal.js` - ESM Temporal subpath bundle
+- `dist/temporal.cjs` - CommonJS Temporal subpath bundle
+- `dist/temporal.d.ts` - Temporal subpath declarations
 
 ## Algorithm Details
 
