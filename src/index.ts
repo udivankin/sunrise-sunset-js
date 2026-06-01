@@ -249,7 +249,7 @@ export function getTwilight(
 
   // Convert fractional hours to Date objects
   const toDate = (hours: number | null): Date | null => {
-    if (hours === null || !isFinite(hours) || hours < 0 || hours > 24) {
+    if (hours === null || !isFinite(hours)) {
       return null;
     }
     return fractionalHourToDate(
@@ -372,7 +372,7 @@ export function getSunTimes(
     );
 
     const twilightToDate = (hours: number | null): Date | null => {
-      if (hours === null || !isFinite(hours) || hours < 0 || hours > 24) {
+      if (hours === null || !isFinite(hours)) {
         return null;
       }
       return fractionalHourToDate(

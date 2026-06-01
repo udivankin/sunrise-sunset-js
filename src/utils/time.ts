@@ -19,7 +19,7 @@ export function dayfracToLocalHr(dayfrac: number, timezone: number): number {
  * @param year - Local calendar year for the calculated sun time
  * @param month - Local calendar month for the calculated sun time
  * @param day - Local calendar day for the calculated sun time
- * @param fractionalHour - Hour as fractional value (0-24)
+ * @param fractionalHour - Hour as fractional value relative to the local calendar day
  * @param timezone - Timezone offset in hours (negative west of Greenwich)
  * @returns Date object representing the time
  */
@@ -30,36 +30,14 @@ export function fractionalHourToDate(
   fractionalHour: number,
   timezone: number
 ): Date {
-  // Handle invalid values (polar day/night)
-  if (fractionalHour < 0 || !isFinite(fractionalHour)) {
+  if (!isFinite(fractionalHour)) {
     return new Date(NaN);
   }
 
-  // Convert fractional hour to milliseconds from midnight UTC
-  const hours = Math.floor(fractionalHour);
-  const minutesDecimal = (fractionalHour - hours) * 60;
-  const minutes = Math.floor(minutesDecimal);
-  const secondsDecimal = (minutesDecimal - minutes) * 60;
-  const seconds = Math.floor(secondsDecimal);
-  const milliseconds = Math.round((secondsDecimal - seconds) * 1000);
+  const localMidnightUtc = Date.UTC(year, month - 1, day, 0, 0, 0, 0);
+  const utcMilliseconds = Math.round((fractionalHour - timezone) * 3600000);
 
-  // Create a new date starting from the local calendar day at midnight UTC
-  const result = new Date(
-    Date.UTC(
-      year,
-      month - 1,
-      day,
-      0, 0, 0, 0
-    )
-  );
-
-  // The fractional hour is in local time, so we need to convert to UTC
-  // Local time = UTC + timezone, so UTC = Local - timezone
-  const utcHours = hours - timezone;
-  
-  result.setUTCHours(utcHours, minutes, seconds, milliseconds);
-
-  return result;
+  return new Date(localMidnightUtc + utcMilliseconds);
 }
 
 /**

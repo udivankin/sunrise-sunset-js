@@ -126,4 +126,34 @@ describe('SunriseSunsetJS library', () => {
     expect(hoChiMinh.sunrise!.getTime()).toBe(explicitOffset.sunrise!.getTime());
     expect(hoChiMinh.sunrise!.getTime()).not.toBe(utc.sunrise!.getTime());
   });
+
+  it('should not drop twilight times outside the runtime timezone day', () => {
+    const originalTimezone = process.env.TZ;
+
+    try {
+      process.env.TZ = 'Asia/Ho_Chi_Minh';
+      const newYorkFromVietnam = getSunTimes(40, -70, new Date("2026-05-03T12:00:00Z"));
+
+      expect(newYorkFromVietnam.twilight).not.toBeNull();
+      expect(newYorkFromVietnam.twilight!.civilDusk).not.toBeNull();
+      expect(newYorkFromVietnam.twilight!.nauticalDusk).not.toBeNull();
+      expect(newYorkFromVietnam.twilight!.astronomicalDusk).not.toBeNull();
+      expect(newYorkFromVietnam.twilight!.goldenHour.evening.start).not.toBeNull();
+      expect(newYorkFromVietnam.twilight!.blueHour.evening.end).not.toBeNull();
+      expect(getTwilight(40, -70, new Date("2026-05-03T12:00:00Z"))!.civilDusk).not.toBeNull();
+
+      process.env.TZ = 'America/New_York';
+      const vietnamFromNewYork = getSunTimes(16, 108, new Date("2026-05-03T12:00:00Z"));
+
+      expect(vietnamFromNewYork.twilight).not.toBeNull();
+      expect(vietnamFromNewYork.twilight!.civilDawn).not.toBeNull();
+      expect(vietnamFromNewYork.twilight!.nauticalDawn).not.toBeNull();
+      expect(vietnamFromNewYork.twilight!.astronomicalDawn).not.toBeNull();
+      expect(vietnamFromNewYork.twilight!.goldenHour.morning.end).not.toBeNull();
+      expect(vietnamFromNewYork.twilight!.blueHour.morning.start).not.toBeNull();
+      expect(getTwilight(16, 108, new Date("2026-05-03T12:00:00Z"))!.civilDawn).not.toBeNull();
+    } finally {
+      process.env.TZ = originalTimezone;
+    }
+  });
 });

@@ -1,6 +1,6 @@
 {
   "name": "sunrise-sunset-js",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "description": "High-precision sunrise and sunset time calculation using NREL's Solar Position Algorithm",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -17,7 +17,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "build": "tsc --emitDeclarationOnly && rolldown -c",
@@ -31,10 +31,10 @@
   },
   "devDependencies": {
     "@types/node": "24.10.2",
-    "@vitest/coverage-v8": "4.0.15",
-    "rolldown": "1.0.0-beta.53",
+    "@vitest/coverage-v8": "4.1.8",
+    "rolldown": "1.0.3",
     "typescript": "5.9.3",
-    "vitest": "4.0.15"
+    "vitest": "4.1.8"
   },
   "repository": {
     "type": "git",

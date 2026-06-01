@@ -13,7 +13,7 @@ export declare function dayfracToLocalHr(dayfrac: number, timezone: number): num
  * @param year - Local calendar year for the calculated sun time
  * @param month - Local calendar month for the calculated sun time
  * @param day - Local calendar day for the calculated sun time
- * @param fractionalHour - Hour as fractional value (0-24)
+ * @param fractionalHour - Hour as fractional value relative to the local calendar day
  * @param timezone - Timezone offset in hours (negative west of Greenwich)
  * @returns Date object representing the time
  */

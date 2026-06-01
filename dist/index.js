@@ -6,10 +6,6 @@
 const PI = Math.PI;
 const SUN_RADIUS = .26667;
 const REFRACTION_CORRECTION = .5667;
-const L_COUNT = 6;
-const B_COUNT = 2;
-const R_COUNT = 5;
-const Y_COUNT = 63;
 const L_SUBCOUNT = [
 	64,
 	34,
@@ -26,19 +22,6 @@ const R_SUBCOUNT = [
 	2,
 	1
 ];
-const TERM_A = 0;
-const TERM_B = 1;
-const TERM_C = 2;
-const TERM_X_COUNT = 5;
-const TERM_PSI_A = 0;
-const TERM_PSI_B = 1;
-const TERM_EPS_C = 2;
-const TERM_EPS_D = 3;
-const ZENITH_CIVIL_TWILIGHT = 96;
-const ZENITH_NAUTICAL_TWILIGHT = 102;
-const ZENITH_ASTRONOMICAL_TWILIGHT = 108;
-const ZENITH_GOLDEN_HOUR = 84;
-const ZENITH_BLUE_HOUR = 94;
 const INVALID_VALUE = -99999;
 /**
 * Earth Heliocentric Longitude Periodic Terms (L)
@@ -1874,7 +1857,6 @@ const PE_TERMS = [
 		0
 	]
 ];
-
 //#endregion
 //#region src/utils/math.ts
 /**
@@ -1943,7 +1925,6 @@ function limitMinutes(minutes) {
 	else if (limited > 20) limited -= 1440;
 	return limited;
 }
-
 //#endregion
 //#region src/utils/time.ts
 /**
@@ -1963,65 +1944,16 @@ function dayfracToLocalHr(dayfrac, timezone) {
 * @param year - Local calendar year for the calculated sun time
 * @param month - Local calendar month for the calculated sun time
 * @param day - Local calendar day for the calculated sun time
-* @param fractionalHour - Hour as fractional value (0-24)
+* @param fractionalHour - Hour as fractional value relative to the local calendar day
 * @param timezone - Timezone offset in hours (negative west of Greenwich)
 * @returns Date object representing the time
 */
 function fractionalHourToDate(year, month, day, fractionalHour, timezone) {
-	if (fractionalHour < 0 || !isFinite(fractionalHour)) return /* @__PURE__ */ new Date(NaN);
-	const hours = Math.floor(fractionalHour);
-	const minutesDecimal = (fractionalHour - hours) * 60;
-	const minutes = Math.floor(minutesDecimal);
-	const secondsDecimal = (minutesDecimal - minutes) * 60;
-	const seconds = Math.floor(secondsDecimal);
-	const milliseconds = Math.round((secondsDecimal - seconds) * 1e3);
-	const result = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
-	const utcHours = hours - timezone;
-	result.setUTCHours(utcHours, minutes, seconds, milliseconds);
-	return result;
+	if (!isFinite(fractionalHour)) return /* @__PURE__ */ new Date(NaN);
+	const localMidnightUtc = Date.UTC(year, month - 1, day, 0, 0, 0, 0);
+	const utcMilliseconds = Math.round((fractionalHour - timezone) * 36e5);
+	return new Date(localMidnightUtc + utcMilliseconds);
 }
-
-//#endregion
-//#region src/types.ts
-/**
-* Solar Position Algorithm (SPA) Type Definitions
-* Based on NREL's Solar Position Algorithm for Solar Radiation Applications
-*/
-/**
-* Output calculation modes
-*/
-let SpaFunction = /* @__PURE__ */ function(SpaFunction$1) {
-	/** Calculate only zenith and azimuth */
-	SpaFunction$1[SpaFunction$1["SPA_ZA"] = 0] = "SPA_ZA";
-	/** Calculate zenith, azimuth, and incidence angle */
-	SpaFunction$1[SpaFunction$1["SPA_ZA_INC"] = 1] = "SPA_ZA_INC";
-	/** Calculate zenith, azimuth, and rise/transit/set */
-	SpaFunction$1[SpaFunction$1["SPA_ZA_RTS"] = 2] = "SPA_ZA_RTS";
-	/** Calculate all output values */
-	SpaFunction$1[SpaFunction$1["SPA_ALL"] = 3] = "SPA_ALL";
-	return SpaFunction$1;
-}({});
-/**
-* Julian Day offset enumeration for RTS calculations
-*/
-let JDSign = /* @__PURE__ */ function(JDSign$1) {
-	JDSign$1[JDSign$1["JD_MINUS"] = 0] = "JD_MINUS";
-	JDSign$1[JDSign$1["JD_ZERO"] = 1] = "JD_ZERO";
-	JDSign$1[JDSign$1["JD_PLUS"] = 2] = "JD_PLUS";
-	JDSign$1[JDSign$1["JD_COUNT"] = 3] = "JD_COUNT";
-	return JDSign$1;
-}({});
-/**
-* Sun state enumeration for RTS calculations
-*/
-let SunState = /* @__PURE__ */ function(SunState$1) {
-	SunState$1[SunState$1["SUN_TRANSIT"] = 0] = "SUN_TRANSIT";
-	SunState$1[SunState$1["SUN_RISE"] = 1] = "SUN_RISE";
-	SunState$1[SunState$1["SUN_SET"] = 2] = "SUN_SET";
-	SunState$1[SunState$1["SUN_COUNT"] = 3] = "SUN_COUNT";
-	return SunState$1;
-}({});
-
 //#endregion
 //#region src/utils/date.ts
 const timeZoneDateTimeFormatters = /* @__PURE__ */ new Map();
@@ -2174,7 +2106,6 @@ function resolveDateTimeComponents(date, timezone, timezoneId) {
 	} catch {}
 	return extractLocalDateComponents(date);
 }
-
 //#endregion
 //#region src/calculations/earth.ts
 /**
@@ -2190,7 +2121,7 @@ function resolveDateTimeComponents(date, timezone, timezoneId) {
 */
 function earthPeriodicTermSummation(terms, count, jme) {
 	let sum = 0;
-	for (let i = 0; i < count; i++) sum += terms[i][TERM_A] * Math.cos(terms[i][TERM_B] + terms[i][TERM_C] * jme);
+	for (let i = 0; i < count; i++) sum += terms[i][0] * Math.cos(terms[i][1] + terms[i][2] * jme);
 	return sum;
 }
 /**
@@ -2213,8 +2144,8 @@ function earthValues(termSum, count, jme) {
 */
 function earthHeliocentricLongitude(jme) {
 	const sum = [];
-	for (let i = 0; i < L_COUNT; i++) sum[i] = earthPeriodicTermSummation(L_TERMS[i], L_SUBCOUNT[i], jme);
-	return limitDegrees(rad2deg(earthValues(sum, L_COUNT, jme)));
+	for (let i = 0; i < 6; i++) sum[i] = earthPeriodicTermSummation(L_TERMS[i], L_SUBCOUNT[i], jme);
+	return limitDegrees(rad2deg(earthValues(sum, 6, jme)));
 }
 /**
 * Calculate Earth's heliocentric latitude
@@ -2223,8 +2154,8 @@ function earthHeliocentricLongitude(jme) {
 */
 function earthHeliocentricLatitude(jme) {
 	const sum = [];
-	for (let i = 0; i < B_COUNT; i++) sum[i] = earthPeriodicTermSummation(B_TERMS[i], B_SUBCOUNT[i], jme);
-	return rad2deg(earthValues(sum, B_COUNT, jme));
+	for (let i = 0; i < 2; i++) sum[i] = earthPeriodicTermSummation(B_TERMS[i], B_SUBCOUNT[i], jme);
+	return rad2deg(earthValues(sum, 2, jme));
 }
 /**
 * Calculate Earth's radius vector (distance from Sun)
@@ -2233,10 +2164,9 @@ function earthHeliocentricLatitude(jme) {
 */
 function earthRadiusVector(jme) {
 	const sum = [];
-	for (let i = 0; i < R_COUNT; i++) sum[i] = earthPeriodicTermSummation(R_TERMS[i], R_SUBCOUNT[i], jme);
-	return earthValues(sum, R_COUNT, jme);
+	for (let i = 0; i < 5; i++) sum[i] = earthPeriodicTermSummation(R_TERMS[i], R_SUBCOUNT[i], jme);
+	return earthValues(sum, 5, jme);
 }
-
 //#endregion
 //#region src/calculations/sun.ts
 /**
@@ -2319,7 +2249,6 @@ function sunMeanLongitude(jme) {
 function sunEquatorialHorizontalParallax(r) {
 	return 8.794 / (3600 * r);
 }
-
 //#endregion
 //#region src/calculations/nutation.ts
 /**
@@ -2370,7 +2299,7 @@ function ascendingLongitudeMoon(jce) {
 */
 function xyTermSummation(i, x) {
 	let sum = 0;
-	for (let j = 0; j < TERM_X_COUNT; j++) sum += x[j] * Y_TERMS[i][j];
+	for (let j = 0; j < 5; j++) sum += x[j] * Y_TERMS[i][j];
 	return sum;
 }
 /**
@@ -2382,10 +2311,10 @@ function xyTermSummation(i, x) {
 function nutationLongitudeAndObliquity(jce, x) {
 	let sumPsi = 0;
 	let sumEpsilon = 0;
-	for (let i = 0; i < Y_COUNT; i++) {
+	for (let i = 0; i < 63; i++) {
 		const xyTermSum = deg2rad(xyTermSummation(i, x));
-		sumPsi += (PE_TERMS[i][TERM_PSI_A] + jce * PE_TERMS[i][TERM_PSI_B]) * Math.sin(xyTermSum);
-		sumEpsilon += (PE_TERMS[i][TERM_EPS_C] + jce * PE_TERMS[i][TERM_EPS_D]) * Math.cos(xyTermSum);
+		sumPsi += (PE_TERMS[i][0] + jce * PE_TERMS[i][1]) * Math.sin(xyTermSum);
+		sumEpsilon += (PE_TERMS[i][2] + jce * PE_TERMS[i][3]) * Math.cos(xyTermSum);
 	}
 	return {
 		delPsi: sumPsi / 36e6,
@@ -2410,7 +2339,6 @@ function eclipticMeanObliquity(jme) {
 function eclipticTrueObliquity(deltaEpsilon, epsilon0) {
 	return deltaEpsilon + epsilon0 / 3600;
 }
-
 //#endregion
 //#region src/calculations/observer.ts
 /**
@@ -2509,7 +2437,7 @@ function topocentricElevationAngle(latitude, deltaPrime, hPrime) {
 */
 function atmosphericRefractionCorrection(pressure, temperature, atmosphericRefraction, e0) {
 	let delE = 0;
-	if (e0 >= -1 * (SUN_RADIUS + atmosphericRefraction)) delE = pressure / 1010 * (283 / (273 + temperature)) * (1.02 / (60 * Math.tan(deg2rad(e0 + 10.3 / (e0 + 5.11)))));
+	if (e0 >= -1 * (.26667 + atmosphericRefraction)) delE = pressure / 1010 * (283 / (273 + temperature)) * (1.02 / (60 * Math.tan(deg2rad(e0 + 10.3 / (e0 + 5.11)))));
 	return delE;
 }
 /**
@@ -2562,7 +2490,6 @@ function surfaceIncidenceAngle(zenith, azimuthAstro, azimuthRotation, slope) {
 	const slopeRad = deg2rad(slope);
 	return rad2deg(Math.acos(Math.cos(zenithRad) * Math.cos(slopeRad) + Math.sin(slopeRad) * Math.sin(zenithRad) * Math.cos(deg2rad(azimuthAstro - azimuthRotation))));
 }
-
 //#endregion
 //#region src/calculations/rts.ts
 /**
@@ -2600,9 +2527,9 @@ function approxSunTransitTime(alphaZero, longitude, nu) {
 */
 function approxSunRiseAndSet(mRts, h0) {
 	const h0Dfrac = h0 / 360;
-	mRts[SunState.SUN_RISE] = limitZero2one(mRts[SunState.SUN_TRANSIT] - h0Dfrac);
-	mRts[SunState.SUN_SET] = limitZero2one(mRts[SunState.SUN_TRANSIT] + h0Dfrac);
-	mRts[SunState.SUN_TRANSIT] = limitZero2one(mRts[SunState.SUN_TRANSIT]);
+	mRts[1] = limitZero2one(mRts[0] - h0Dfrac);
+	mRts[2] = limitZero2one(mRts[0] + h0Dfrac);
+	mRts[0] = limitZero2one(mRts[0]);
 }
 /**
 * Calculate interpolated alpha or delta for RTS
@@ -2611,11 +2538,11 @@ function approxSunRiseAndSet(mRts, h0) {
 * @returns Interpolated value
 */
 function rtsAlphaDeltaPrime(ad, n) {
-	let a = ad[JDSign.JD_ZERO] - ad[JDSign.JD_MINUS];
-	let b = ad[JDSign.JD_PLUS] - ad[JDSign.JD_ZERO];
+	let a = ad[1] - ad[0];
+	let b = ad[2] - ad[1];
 	if (Math.abs(a) >= 2) a = limitZero2one(a);
 	if (Math.abs(b) >= 2) b = limitZero2one(b);
-	return ad[JDSign.JD_ZERO] + n * (a + b + (b - a) * n) / 2;
+	return ad[1] + n * (a + b + (b - a) * n) / 2;
 }
 /**
 * Calculate sun altitude for RTS
@@ -2669,15 +2596,15 @@ function calculateEotAndSunRiseTransitSet(spa, calculateRaDec) {
 	const eot = equationOfTime(sunMeanLongitude(spa.jme), spa.alpha, spa.delPsi, spa.epsilon);
 	const alpha = [];
 	const delta = [];
-	for (let i = 0; i < JDSign.JD_COUNT; i++) {
+	for (let i = 0; i < 3; i++) {
 		const result = calculateRaDec(sunRtsJd + i - 1, spa.deltaT);
 		alpha[i] = result.alpha;
 		delta[i] = result.delta;
 	}
 	const mRts = [];
-	mRts[SunState.SUN_TRANSIT] = approxSunTransitTime(alpha[JDSign.JD_ZERO], spa.longitude, nu);
-	const h0 = sunHourAngleAtRiseSet(spa.latitude, delta[JDSign.JD_ZERO], h0Prime);
-	if (h0 === INVALID_VALUE) return {
+	mRts[0] = approxSunTransitTime(alpha[1], spa.longitude, nu);
+	const h0 = sunHourAngleAtRiseSet(spa.latitude, delta[1], h0Prime);
+	if (h0 === -99999) return {
 		sunrise: INVALID_VALUE,
 		suntransit: INVALID_VALUE,
 		sunset: INVALID_VALUE,
@@ -2692,7 +2619,7 @@ function calculateEotAndSunRiseTransitSet(spa, calculateRaDec) {
 	const alphaPrime = [];
 	const deltaPrime = [];
 	const hRts = [];
-	for (let i = 0; i < SunState.SUN_COUNT; i++) {
+	for (let i = 0; i < 3; i++) {
 		nuRts[i] = nu + 360.985647 * mRts[i];
 		const n = mRts[i] + spa.deltaT / 86400;
 		alphaPrime[i] = rtsAlphaDeltaPrime(alpha, n);
@@ -2700,14 +2627,14 @@ function calculateEotAndSunRiseTransitSet(spa, calculateRaDec) {
 		hPrime[i] = limitDegrees180pm(nuRts[i] + spa.longitude - alphaPrime[i]);
 		hRts[i] = rtsSunAltitude(spa.latitude, deltaPrime[i], hPrime[i]);
 	}
-	const srha = hPrime[SunState.SUN_RISE];
-	const ssha = hPrime[SunState.SUN_SET];
-	const sta = hRts[SunState.SUN_TRANSIT];
-	const suntransit = dayfracToLocalHr(mRts[SunState.SUN_TRANSIT] - hPrime[SunState.SUN_TRANSIT] / 360, spa.timezone);
+	const srha = hPrime[1];
+	const ssha = hPrime[2];
+	const sta = hRts[0];
+	const suntransit = dayfracToLocalHr(mRts[0] - hPrime[0] / 360, spa.timezone);
 	return {
-		sunrise: dayfracToLocalHr(sunRiseAndSet(mRts, hRts, deltaPrime, spa.latitude, hPrime, h0Prime, SunState.SUN_RISE), spa.timezone),
+		sunrise: dayfracToLocalHr(sunRiseAndSet(mRts, hRts, deltaPrime, spa.latitude, hPrime, h0Prime, 1), spa.timezone),
 		suntransit,
-		sunset: dayfracToLocalHr(sunRiseAndSet(mRts, hRts, deltaPrime, spa.latitude, hPrime, h0Prime, SunState.SUN_SET), spa.timezone),
+		sunset: dayfracToLocalHr(sunRiseAndSet(mRts, hRts, deltaPrime, spa.latitude, hPrime, h0Prime, 2), spa.timezone),
 		srha,
 		ssha,
 		sta,
@@ -2737,16 +2664,8 @@ function calculateCustomZenithTimes(latitude, delta, suntransit, zenithAngle) {
 		sunset: suntransit + H0h
 	};
 }
-
 //#endregion
 //#region src/spa.ts
-/**
-* Solar Position Algorithm (SPA) Main Calculator
-* Based on NREL's Solar Position Algorithm for Solar Radiation Applications
-* 
-* This is the core SPA calculation module that orchestrates all sub-calculations
-* to determine precise solar position and rise/transit/set times.
-*/
 /**
 * Create a new SpaData object with default values
 */
@@ -2770,7 +2689,7 @@ function createSpaData() {
 		azimuthRotation: 0,
 		atmosphericRefraction: REFRACTION_CORRECTION,
 		timezoneId: "",
-		function: SpaFunction.SPA_ALL,
+		function: 3,
 		jd: 0,
 		jc: 0,
 		jde: 0,
@@ -2936,8 +2855,8 @@ function spaCalculate(spa) {
 	spa.zenith = topocentricZenithAngle(spa.e);
 	spa.azimuthAstro = topocentricAzimuthAngleAstro(spa.hPrime, spa.latitude, spa.deltaPrime);
 	spa.azimuth = topocentricAzimuthAngle(spa.azimuthAstro);
-	if (spa.function === SpaFunction.SPA_ZA_INC || spa.function === SpaFunction.SPA_ALL) spa.incidence = surfaceIncidenceAngle(spa.zenith, spa.azimuthAstro, spa.azimuthRotation, spa.slope);
-	if (spa.function === SpaFunction.SPA_ZA_RTS || spa.function === SpaFunction.SPA_ALL) {
+	if (spa.function === 1 || spa.function === 3) spa.incidence = surfaceIncidenceAngle(spa.zenith, spa.azimuthAstro, spa.azimuthRotation, spa.slope);
+	if (spa.function === 2 || spa.function === 3) {
 		const rts = calculateEotAndSunRiseTransitSet(spa, calculateRaDecForJd);
 		spa.sunrise = rts.sunrise;
 		spa.suntransit = rts.suntransit;
@@ -2972,17 +2891,16 @@ function initSpaFromDate(date, latitude, longitude, options = {}) {
 	spa.deltaT = options.deltaT ?? 67;
 	spa.slope = options.slope ?? 0;
 	spa.azimuthRotation = options.azimuthRotation ?? 0;
-	spa.atmosphericRefraction = options.atmosphericRefraction ?? REFRACTION_CORRECTION;
-	spa.function = SpaFunction.SPA_ALL;
+	spa.atmosphericRefraction = options.atmosphericRefraction ?? .5667;
+	spa.function = 3;
 	return spa;
 }
 /**
 * Check if a sunrise/sunset time is valid (not polar day/night)
 */
 function isValidSunTime(time) {
-	return time !== INVALID_VALUE && isFinite(time) && time >= 0;
+	return time !== -99999 && isFinite(time) && time >= 0;
 }
-
 //#endregion
 //#region src/index.ts
 /**
@@ -3096,13 +3014,13 @@ function getSolarPosition(latitude, longitude, date = /* @__PURE__ */ new Date()
 function getTwilight(latitude, longitude, date = /* @__PURE__ */ new Date(), options) {
 	const spa = initSpaFromDate(date, latitude, longitude, options);
 	if (spaCalculate(spa) !== 0 || !isValidSunTime(spa.suntransit)) return null;
-	const civil = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, ZENITH_CIVIL_TWILIGHT);
-	const nautical = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, ZENITH_NAUTICAL_TWILIGHT);
-	const astronomical = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, ZENITH_ASTRONOMICAL_TWILIGHT);
-	const golden = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, ZENITH_GOLDEN_HOUR);
-	const blue = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, ZENITH_BLUE_HOUR);
+	const civil = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, 96);
+	const nautical = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, 102);
+	const astronomical = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, 108);
+	const golden = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, 84);
+	const blue = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, 94);
 	const toDate = (hours) => {
-		if (hours === null || !isFinite(hours) || hours < 0 || hours > 24) return null;
+		if (hours === null || !isFinite(hours)) return null;
 		return fractionalHourToDate(spa.year, spa.month, spa.day, hours, spa.timezone);
 	};
 	return {
@@ -3166,13 +3084,13 @@ function getSunTimes(latitude, longitude, date = /* @__PURE__ */ new Date(), opt
 	};
 	let twilight = null;
 	if (isValidSunTime(spa.suntransit)) {
-		const civil = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, ZENITH_CIVIL_TWILIGHT);
-		const nautical = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, ZENITH_NAUTICAL_TWILIGHT);
-		const astronomical = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, ZENITH_ASTRONOMICAL_TWILIGHT);
-		const golden = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, ZENITH_GOLDEN_HOUR);
-		const blue = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, ZENITH_BLUE_HOUR);
+		const civil = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, 96);
+		const nautical = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, 102);
+		const astronomical = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, 108);
+		const golden = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, 84);
+		const blue = calculateCustomZenithTimes(latitude, spa.delta, spa.suntransit, 94);
 		const twilightToDate = (hours) => {
-			if (hours === null || !isFinite(hours) || hours < 0 || hours > 24) return null;
+			if (hours === null || !isFinite(hours)) return null;
 			return fractionalHourToDate(spa.year, spa.month, spa.day, hours, spa.timezone);
 		};
 		twilight = {
@@ -3211,7 +3129,7 @@ function getSunTimes(latitude, longitude, date = /* @__PURE__ */ new Date(), opt
 		twilight
 	};
 }
-
 //#endregion
 export { getSolarNoon, getSolarPosition, getSunTimes, getSunrise, getSunset, getTwilight };
+
 //# sourceMappingURL=index.js.map
