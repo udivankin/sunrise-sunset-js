@@ -24,13 +24,25 @@
         <canvas id="sky" aria-hidden="true"></canvas>
 
         <div class="mountains" aria-hidden="true">
-            <svg class="m-back" viewBox="0 0 1440 320" preserveAspectRatio="none">
-                <path
-                    d="M0,320 L0,196 L84,158 L172,208 L262,118 L344,188 L432,92 L524,168 L618,112 L712,178 L804,72 L902,158 L992,122 L1084,188 L1172,138 L1262,198 L1334,152 L1440,206 L1440,320 Z" />
+            <!-- each layer holds 3 seamless copies of its ridge so the panorama
+                 can wrap around as the camera rotates with the sun's azimuth -->
+            <svg class="m-back" viewBox="0 0 4320 320" preserveAspectRatio="none">
+                <defs>
+                    <path id="ridgeBack"
+                        d="M0,320 L0,170 L90,95 L200,150 L320,55 L430,140 L560,75 L690,155 L800,60 L930,135 L1040,85 L1160,150 L1270,70 L1380,140 L1440,170 L1440,320 Z" />
+                </defs>
+                <use href="#ridgeBack" />
+                <use href="#ridgeBack" x="1440" />
+                <use href="#ridgeBack" x="2880" />
             </svg>
-            <svg class="m-front" viewBox="0 0 1440 320" preserveAspectRatio="none">
-                <path
-                    d="M0,320 L0,252 L118,212 L232,262 L332,182 L452,250 L562,202 L682,268 L792,212 L912,278 L1022,232 L1142,288 L1252,242 L1362,288 L1440,262 L1440,320 Z" />
+            <svg class="m-front" viewBox="0 0 4320 320" preserveAspectRatio="none">
+                <defs>
+                    <path id="ridgeFront"
+                        d="M0,320 L0,255 L110,200 L230,250 L350,165 L470,240 L590,185 L710,250 L830,175 L950,245 L1060,195 L1180,255 L1290,205 L1400,250 L1440,255 L1440,320 Z" />
+                </defs>
+                <use href="#ridgeFront" />
+                <use href="#ridgeFront" x="1440" />
+                <use href="#ridgeFront" x="2880" />
             </svg>
         </div>
 
@@ -65,6 +77,7 @@
                 <div class="polar-badge" id="polarBadge" hidden></div>
             </div>
             <div class="sun-stats" aria-label="Live solar position">
+                <svg id="compass" viewBox="0 0 100 100" role="img" aria-label="Sun azimuth compass"></svg>
                 <div class="stat"><span>Elevation</span><b id="statElev">—</b></div>
                 <div class="stat"><span>Azimuth</span><b id="statAz">—</b></div>
                 <div class="stat"><span>Daylight</span><b id="statDayLen">—</b></div>
@@ -122,11 +135,10 @@
     <section class="section">
         <div class="eyebrow reveal">365 × getSunTimes</div>
         <h2 class="sec-title reveal">A year of light</h2>
-        <p class="sec-sub reveal">Each column is one day, midnight to midnight. Drag across the year and watch the
-            seasons reshape the sky above.</p>
+        <p class="sec-sub reveal">Every spoke is one day — midnight at the core, midnight at the rim. Drag around the
+            ring and watch the seasons reshape the sky above.</p>
         <div class="year-wrap reveal">
-            <div class="year-readout" id="yearReadout">&nbsp;</div>
-            <canvas id="yearCanvas" aria-label="Yearly daylight chart"></canvas>
+            <canvas id="yearCanvas" aria-label="Yearly daylight ring"></canvas>
             <div class="legend" id="legend"></div>
         </div>
     </section>

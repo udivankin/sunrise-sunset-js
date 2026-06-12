@@ -62,6 +62,10 @@ export class SkyScene {
     private needsRender = true;
     private ready = false;
 
+    /** Fires on every rendered frame with the smoothed view azimuth/elevation,
+     *  so DOM companions (panorama, compass) stay in lockstep with the camera. */
+    onFrame?: (azimuthDeg: number, elevationDeg: number) => void;
+
     constructor(private canvas: HTMLCanvasElement) {
         this.renderer = new THREE.WebGLRenderer({
             canvas,
@@ -110,16 +114,15 @@ export class SkyScene {
         const u = (this.sky.material as THREE.ShaderMaterial).uniforms;
         u.sunPosition.value.copy(this.sunDir);
 
-        // Track the sun near the horizon (sunrises/sunsets stay in frame) but
-        // veer away and tilt up as it climbs, so midday frames the blue zenith
-        // instead of the white horizon haze.
+        // The camera always faces the sun's azimuth: the sun only ever moves
+        // vertically on screen while the landscape pans past. A slight upward
+        // tilt as the sun climbs keeps the bluer zenith in frame.
         const high = clamp((e - 10) / 25, 0, 1);
-        const camTheta = this.theta + high * deg(60);
-        const pitch = deg(15 + high * 22);
+        const pitch = deg(15 + high * 10);
         this.camera.lookAt(
-            Math.sin(camTheta) * 2000,
+            Math.sin(this.theta) * 2000,
             this.camera.position.y + 2000 * Math.tan(pitch),
-            Math.cos(camTheta) * 2000,
+            Math.cos(this.theta) * 2000,
         );
 
         // Push scattering up as the sun nears the horizon for richer dawns/dusks.
@@ -164,6 +167,8 @@ export class SkyScene {
                     this.ready = true;
                     this.canvas.classList.add('ready');
                 }
+                const azDeg = ((THREE.MathUtils.radToDeg(this.theta) % 360) + 360) % 360;
+                this.onFrame?.(azDeg, this.elev);
             }
         }
         requestAnimationFrame(this.tick);

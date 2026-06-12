@@ -8,7 +8,7 @@ High-precision sunrise and sunset calculation library using NREL's Solar Positio
 
 ## [Interactive Demo](https://udivankin.github.io/sunrise-sunset/)
 
-Scrub through a day anywhere on Earth under a physically-based WebGL sky driven by the library's real solar position output. Explore every twilight phase on a 24-hour dial, drag across the "year of light" chart to watch the seasons reshape the day, and share any scene via URL (`?lat=…&lng=…&date=…&t=…`). Timezones are resolved offline; polar day and night are handled gracefully.
+Scrub through a day anywhere on Earth under a physically-based WebGL sky driven by the library's real solar position output. Explore every twilight phase on a 24-hour dial, drag around the "year of light" ring to watch the seasons reshape the day, and share any scene via URL (`?lat=…&lng=…&date=…&t=…`). Timezones are resolved offline; polar day and night are handled gracefully.
 
 ![Demo Screenshot](https://raw.githubusercontent.com/udivankin/sunrise-sunset/master/demo/screenshot.png)
 

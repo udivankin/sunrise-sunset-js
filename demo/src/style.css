@@ -81,19 +81,22 @@ button {
 
 .mountains {
     position: absolute;
-    left: -3%;
-    right: -3%;
-    bottom: 0;
-    height: 26vh;
-    min-height: 150px;
+    inset: auto 0 0 0;
+    height: 37vh;
+    min-height: 230px;
+    overflow: hidden;
     pointer-events: none;
 }
 
+/* each strip is 3 hero-widths wide and pans horizontally as the camera
+   rotates with the sun — the wrap happens at exact tile boundaries */
 .mountains svg {
     position: absolute;
-    inset: auto 0 0 0;
-    width: 100%;
+    left: -100%;
+    bottom: 0;
+    width: 300%;
     height: 100%;
+    will-change: transform;
 }
 
 .m-back path {
@@ -123,7 +126,7 @@ button {
     font-weight: 500;
     font-size: 15px;
     letter-spacing: 0.03em;
-    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
+    transition: color 0.7s;
 }
 
 .wordmark-dot {
@@ -139,12 +142,24 @@ button {
     text-decoration: none;
     font-size: 13.5px;
     margin-left: 20px;
-    transition: color 0.2s;
-    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
+    transition: color 0.7s;
 }
 
 .top-links a:hover {
     color: var(--ink);
+}
+
+/* daylight: the sky behind the topbar is bright, so flip the ink */
+.hero.day-ui .wordmark {
+    color: #131a33;
+}
+
+.hero.day-ui .top-links a {
+    color: rgba(19, 26, 51, 0.66);
+}
+
+.hero.day-ui .top-links a:hover {
+    color: #131a33;
 }
 
 .hero-ui {
@@ -162,10 +177,13 @@ button {
     font-size: 12.5px;
     letter-spacing: 0.38em;
     text-transform: uppercase;
-    color: var(--gold);
-    text-shadow: 0 1px 14px rgba(0, 0, 0, 0.55);
+    color: var(--phase-color, var(--gold));
     transition: color 0.4s;
     margin-left: 4px;
+}
+
+.hero.day-ui .phase-label {
+    color: rgba(19, 26, 51, 0.78);
 }
 
 .big-time {
@@ -173,7 +191,6 @@ button {
     font-size: clamp(76px, 13vw, 164px);
     line-height: 0.95;
     letter-spacing: -0.01em;
-    text-shadow: 0 4px 44px rgba(0, 0, 0, 0.45);
     user-select: none;
 }
 
@@ -195,7 +212,6 @@ button {
     margin: 14px 0 0 6px;
     color: var(--ink-dim);
     font-size: 14px;
-    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
 }
 
 .meta-sep {
@@ -288,8 +304,15 @@ button {
     text-align: right;
     font-size: 13px;
     color: var(--ink-dim);
-    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
     padding-bottom: 6px;
+}
+
+#compass {
+    width: 94px;
+    height: 94px;
+    justify-self: end;
+    margin-bottom: 6px;
+    font-family: var(--sans);
 }
 
 .sun-stats .stat {
@@ -390,7 +413,6 @@ button {
     letter-spacing: 0.04em;
     color: var(--ink-dim);
     white-space: nowrap;
-    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
 }
 
 .playhead {
@@ -695,25 +717,11 @@ button {
     margin-top: 50px;
 }
 
-.year-readout {
-    font-size: 14px;
-    color: var(--ink-dim);
-    margin-bottom: 14px;
-    font-variant-numeric: tabular-nums;
-}
-
-.year-readout b {
-    color: var(--ink);
-    font-weight: 500;
-}
-
 #yearCanvas {
     display: block;
-    width: 100%;
-    height: 380px;
-    border-radius: 16px;
-    border: 1px solid var(--line);
-    background: #060a18;
+    width: min(100%, 680px);
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
     cursor: crosshair;
     touch-action: pan-y;
 }
@@ -721,8 +729,9 @@ button {
 .legend {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 16px;
-    margin-top: 14px;
+    margin-top: 26px;
     font-size: 12px;
     color: var(--ink-dim);
 }
@@ -883,10 +892,6 @@ button {
 
     .scroll-hint {
         display: none;
-    }
-
-    #yearCanvas {
-        height: 300px;
     }
 
     .cards {

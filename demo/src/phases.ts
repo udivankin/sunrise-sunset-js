@@ -19,7 +19,7 @@ export interface HourInterval {
 }
 
 export const PHASE_COLORS: Record<PhaseId, string> = {
-    night: '#070b1d',
+    night: '#0a0f26',
     astro: '#101a3e',
     nautical: '#1e2d63',
     civil: '#48549b',

@@ -145,12 +145,76 @@ const els = {
     dial: document.getElementById('dial') as unknown as SVGSVGElement,
     cards: $('#cards'),
     yearCanvas: $<HTMLCanvasElement>('#yearCanvas'),
-    yearReadout: $('#yearReadout'),
     legend: $('#legend'),
     copyBtn: $('#copyBtn'),
 };
 
 const sky = new SkyScene($<HTMLCanvasElement>('#sky'));
+
+/* ============ panorama / compass / topbar contrast ============ */
+
+const heroEl = $('#hero');
+const mountainsEl = $('.mountains');
+const mBack = $<HTMLElement>('.m-back');
+const mFront = $<HTMLElement>('.m-front');
+let compassNeedle: SVGGElement | null = null;
+
+function buildCompass(): void {
+    const svg = document.getElementById('compass') as unknown as SVGSVGElement;
+    const parts: string[] = [
+        '<circle cx="50" cy="50" r="45" fill="rgba(8, 11, 24, 0.38)" stroke="rgba(255,255,255,0.22)" stroke-width="1"/>',
+    ];
+    for (let a = 0; a < 360; a += 30) {
+        if (a % 90 === 0) continue;
+        const r = (a * Math.PI) / 180;
+        const x1 = 50 + Math.sin(r) * 40.5, y1 = 50 - Math.cos(r) * 40.5;
+        const x2 = 50 + Math.sin(r) * 45, y2 = 50 - Math.cos(r) * 45;
+        parts.push(`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>`);
+    }
+    const letters: Array<[string, number, number, string]> = [
+        ['N', 50, 16, '#f2c14e'],
+        ['E', 84, 50, 'rgba(244,241,234,0.65)'],
+        ['S', 50, 84, 'rgba(244,241,234,0.65)'],
+        ['W', 16, 50, 'rgba(244,241,234,0.65)'],
+    ];
+    for (const [t, x, y, fill] of letters) {
+        parts.push(`<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="9.5" font-weight="500" fill="${fill}">${t}</text>`);
+    }
+    parts.push('<g id="compassNeedle"><line x1="50" y1="50" x2="50" y2="26" stroke="rgba(242,193,78,0.9)" stroke-width="1.6"/><circle cx="50" cy="26" r="4.4" fill="#f2c14e"/></g>');
+    parts.push('<circle cx="50" cy="50" r="2.2" fill="rgba(244,241,234,0.85)"/>');
+    svg.innerHTML = parts.join('');
+    compassNeedle = svg.querySelector('#compassNeedle');
+}
+
+const wrap = (v: number, m: number) => ((v % m) + m) % m;
+
+/** Slide the ridge strips so a 360° camera turn pans two screen-widths. */
+function moveMountains(azDeg: number): void {
+    const w = mountainsEl.clientWidth;
+    if (!w) return;
+    const travel = (azDeg / 360) * 2 * w;
+    mFront.style.transform = `translate3d(${-wrap(travel, w).toFixed(1)}px,0,0)`;
+    mBack.style.transform = `translate3d(${-wrap(travel * 0.85, w).toFixed(1)}px,0,0)`;
+}
+
+let dayUi = false;
+
+/** Swap topbar ink against the bright daytime sky (with hysteresis). */
+function setUiContrast(elevDeg: number): void {
+    if (!dayUi && elevDeg > 7) {
+        dayUi = true;
+        heroEl.classList.add('day-ui');
+    } else if (dayUi && elevDeg < 5.5) {
+        dayUi = false;
+        heroEl.classList.remove('day-ui');
+    }
+}
+
+sky.onFrame = (azDeg, elevDeg) => {
+    moveMountains(azDeg);
+    compassNeedle?.setAttribute('transform', `rotate(${azDeg.toFixed(2)} 50 50)`);
+    setUiContrast(elevDeg);
+};
 
 /* ============ rendering ============ */
 
@@ -301,7 +365,7 @@ function refreshInstant(): void {
     renderBigTime(h);
     const ph = phaseAt(day, h);
     els.phaseLabel.textContent = ph.label;
-    els.phaseLabel.style.color = ph.color;
+    els.phaseLabel.style.setProperty('--phase-color', ph.color);
     els.playhead.style.left = `${(clamp(h, 0, 24) / 24) * 100}%`;
     els.scrubber.setAttribute('aria-valuenow', h.toFixed(2));
     els.scrubber.setAttribute('aria-valuetext', `${fmtHM(h)}, ${ph.label}`);
@@ -329,11 +393,6 @@ function refreshDay(): void {
 
     renderScrubTrack();
     buildCards();
-    els.yearReadout.innerHTML =
-        `<b>${fmtDate(state.tz, state.date, true)}</b> — ${fmtDur(day.dayLengthMs)} of daylight` +
-        (day.sunriseH !== null && day.sunsetH !== null
-            ? ` · ↑ ${fmtHM(day.sunriseH)} ↓ ${fmtHM(day.sunsetH)}`
-            : '');
     refreshInstant();
 }
 
@@ -580,19 +639,8 @@ function wire(): void {
         .map(([c, l]) => `<span class="lg"><span class="sw" style="background:${c}"></span>${l}</span>`)
         .join('');
 
-    // parallax on the mountain layers
-    if (!reducedMotion && window.matchMedia('(pointer: fine)').matches) {
-        const backTo = gsap.quickTo('.m-back', 'x', { duration: 0.8, ease: 'power2.out' });
-        const frontTo = gsap.quickTo('.m-front', 'x', { duration: 0.6, ease: 'power2.out' });
-        $('#hero').addEventListener('pointermove', (e) => {
-            const dx = e.clientX / window.innerWidth - 0.5;
-            backTo(dx * -14);
-            frontTo(dx * -26);
-        });
-    }
-
-    // scroll reveals
-    if (!reducedMotion) {
+    // scroll reveals (skipped for screenshot mode and reduced motion)
+    if (!reducedMotion && !params.has('shot')) {
         for (const el of Array.from(document.querySelectorAll('.reveal'))) {
             gsap.from(el, {
                 y: 36,
@@ -614,6 +662,7 @@ yearChart = new YearChart(els.yearCanvas, (ymd) => {
 
 els.latInput.value = state.lat.toFixed(4);
 els.lngInput.value = state.lng.toFixed(4);
+buildCompass();
 wire();
 refreshDay();
 syncYearChart();
