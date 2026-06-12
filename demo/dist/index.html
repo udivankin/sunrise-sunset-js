@@ -3,305 +3,168 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sun Times Visualization | Sunrise Sunset JS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>sunrise-sunset-js — every shade of daylight</title>
+    <meta name="description"
+        content="Interactive demo of sunrise-sunset-js: sunrise, sunset, twilight, golden hour and solar position for any place on Earth, computed with NREL's Solar Position Algorithm.">
+    <meta name="theme-color" content="#05070f">
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='58' r='22' fill='%23f2c14e'/%3E%3Crect y='80' width='100' height='20' fill='%2305070f'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #0c0e14;
-            --card-bg: rgba(23, 27, 38, 0.7);
-            --text-primary: #ffffff;
-            --text-secondary: #a0a8c0;
-            --accent: #4f46e5;
-            --accent-hover: #6366f1;
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
-
-        body,
-        html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-color);
-            background: radial-gradient(circle at 50% 50%, #1a1f35 0%, #0c0e14 100%);
-            color: var(--text-primary);
-            overflow: hidden;
-        }
-
-        .visualization-container {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-        }
-
-        #chart {
-            width: 100%;
-            height: 100%;
-        }
-
-        .controls-overlay {
-            position: absolute;
-            top: 2rem;
-            left: 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            padding: 1.5rem;
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 1.25rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            z-index: 100;
-            width: 260px;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .controls-overlay.collapsed {
-            transform: translateX(calc(-100% + 1rem));
-        }
-
-        .controls-toggle {
-            position: absolute;
-            top: 50%;
-            right: -1.25rem;
-            transform: translateY(-50%);
-            width: 2.5rem;
-            height: 2.5rem;
-            background: var(--accent);
-            border: 1px solid var(--glass-border);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            z-index: 101;
-            transition: all 0.2s;
-        }
-
-        .controls-toggle:hover {
-            background: var(--accent-hover);
-            transform: translateY(-50%) scale(1.05);
-        }
-
-        .controls-toggle .icon {
-            transition: transform 0.3s;
-        }
-
-        .controls-overlay.collapsed .controls-toggle .icon {
-            transform: rotate(180deg);
-        }
-
-        .controls-overlay h2 {
-            margin: 0;
-            font-size: 1.25rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .location-info {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            min-height: 1.2em;
-        }
-
-        #timezoneDisplay {
-            font-size: 0.75rem;
-            opacity: 0.8;
-            margin-top: -0.25rem;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-secondary);
-        }
-
-        input {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--glass-border);
-            border-radius: 0.5rem;
-            padding: 0.5rem 0.75rem;
-            color: white;
-            font-family: inherit;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .button-row {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        button {
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            padding: 0.6rem 1rem;
-            font-family: inherit;
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            flex: 1;
-        }
-
-        button:hover {
-            background: var(--accent-hover);
-        }
-
-        #geoBtn {
-            background: transparent;
-            border: 1px solid var(--glass-border);
-        }
-
-        .legend-overlay {
-            position: absolute;
-            bottom: 2rem;
-            left: 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            padding: 1rem;
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 1rem;
-            z-index: 90;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        .legend-color {
-            width: 10px;
-            height: 10px;
-            border-radius: 2px;
-        }
-
-        .tooltip {
-            position: absolute;
-            background: rgba(12, 14, 20, 0.95);
-            border: 1px solid var(--glass-border);
-            border-radius: 0.75rem;
-            padding: 1rem;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s;
-            z-index: 1000;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            font-size: 0.85rem;
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 0.5rem;
-            vertical-align: middle;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        @media (max-width: 600px) {
-            .controls-overlay {
-                top: 1rem;
-                left: 1rem;
-                width: calc(100vw - 4rem);
-                max-width: 300px;
-                padding: 1rem;
-            }
-
-            .legend-overlay {
-                bottom: 1rem;
-                left: 1rem;
-                padding: 0.75rem;
-            }
-        }
-    </style>
-  <script type="module" crossorigin src="./assets/index-DgYu1RK-.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+  <script type="module" crossorigin src="./assets/index-BM23rPOt.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CxjhVImp.css">
 </head>
 
 <body>
-    <div class="visualization-container">
-        <div class="controls-overlay" id="controlsOverlay">
-            <button class="controls-toggle" id="controlsToggle" aria-label="Toggle Controls">
-                <span class="icon">❮</span>
+    <!-- ============ HERO ============ -->
+    <div class="hero" id="hero">
+        <canvas id="sky" aria-hidden="true"></canvas>
+
+        <div class="mountains" aria-hidden="true">
+            <svg class="m-back" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                <path
+                    d="M0,320 L0,196 L84,158 L172,208 L262,118 L344,188 L432,92 L524,168 L618,112 L712,178 L804,72 L902,158 L992,122 L1084,188 L1172,138 L1262,198 L1334,152 L1440,206 L1440,320 Z" />
+            </svg>
+            <svg class="m-front" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                <path
+                    d="M0,320 L0,252 L118,212 L232,262 L332,182 L452,250 L562,202 L682,268 L792,212 L912,278 L1022,232 L1142,288 L1252,242 L1362,288 L1440,262 L1440,320 Z" />
+            </svg>
+        </div>
+
+        <header class="topbar">
+            <a class="wordmark" href="https://github.com/udivankin/sunrise-sunset">
+                <span class="wordmark-dot"></span>sunrise-sunset-js
+            </a>
+            <nav class="top-links">
+                <a href="https://www.npmjs.com/package/sunrise-sunset-js" target="_blank" rel="noopener">npm</a>
+                <a href="https://github.com/udivankin/sunrise-sunset" target="_blank" rel="noopener">GitHub</a>
+            </nav>
+        </header>
+
+        <div class="hero-ui">
+            <div class="hero-left">
+                <div class="phase-label" id="phaseLabel">&nbsp;</div>
+                <div class="big-time" id="bigTime" aria-live="off">00:00</div>
+                <div class="meta-line">
+                    <span class="date-ctrl">
+                        <button class="icon-btn" id="datePrev" aria-label="Previous day">‹</button>
+                        <span class="date-btn">
+                            <span id="dateText">—</span>
+                            <input type="date" id="dateInput" aria-label="Pick a date">
+                        </span>
+                        <button class="icon-btn" id="dateNext" aria-label="Next day">›</button>
+                    </span>
+                    <span class="meta-sep">·</span>
+                    <button class="loc-btn" id="locBtn" aria-haspopup="true" aria-expanded="false">—</button>
+                    <span class="meta-sep">·</span>
+                    <span id="tzText" class="tz-text">UTC</span>
+                </div>
+                <div class="polar-badge" id="polarBadge" hidden></div>
+            </div>
+            <div class="sun-stats" aria-label="Live solar position">
+                <div class="stat"><span>Elevation</span><b id="statElev">—</b></div>
+                <div class="stat"><span>Azimuth</span><b id="statAz">—</b></div>
+                <div class="stat"><span>Daylight</span><b id="statDayLen">—</b></div>
+            </div>
+        </div>
+
+        <div class="scrub-wrap">
+            <button class="t-btn" id="playBtn" aria-label="Play the day">
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                    <path id="playIcon" d="M7 4 L20 12 L7 20 Z" fill="currentColor" />
+                </svg>
             </button>
-            <h2>Sun Cycle</h2>
-            <div id="locationDisplay" class="location-info"></div>
-            <div id="timezoneDisplay" class="location-info"></div>
-            <div class="input-group">
-                <label for="lat">Latitude</label>
-                <input type="number" id="lat" value="51.5074" step="0.0001">
-            </div>
-            <div class="input-group">
-                <label for="lng">Longitude</label>
-                <input type="number" id="lng" value="-0.1278" step="0.0001">
-            </div>
-            <div class="button-row">
-                <button id="updateBtn">Update</button>
-                <button id="geoBtn" title="Use My Location">📍</button>
+            <button class="t-btn t-btn-text" id="nowBtn">Now</button>
+            <div class="scrubber" id="scrubber" role="slider" tabindex="0" aria-label="Time of day"
+                aria-valuemin="0" aria-valuemax="24" aria-valuenow="12">
+                <div class="scrub-track" id="scrubTrack"></div>
+                <div class="scrub-markers" id="scrubMarkers"></div>
+                <div class="playhead" id="playhead"></div>
             </div>
         </div>
 
-        <div id="chart"></div>
-        <div id="tooltip" class="tooltip"></div>
-
-        <div class="legend-overlay">
-            <div class="legend-item">
-                <div class="legend-color" style="background: #fbbf24;"></div>
-                <span>Daylight</span>
+        <div class="loc-panel" id="locPanel" role="dialog" aria-label="Choose location">
+            <div class="loc-panel-head">
+                <h4>Location</h4>
+                <button class="icon-btn" id="locClose" aria-label="Close">✕</button>
             </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: #6366f1;"></div>
-                <span>Civil Twilight</span>
+            <div class="chips" id="presetChips"></div>
+            <div class="loc-row">
+                <label>Lat <input type="number" id="latInput" step="0.0001" min="-90" max="90"></label>
+                <label>Lng <input type="number" id="lngInput" step="0.0001" min="-180" max="180"></label>
+                <button class="apply-btn" id="applyLoc">Go</button>
             </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: #3730a3;"></div>
-                <span>Nautical</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: #1e1b4b;"></div>
-                <span>Astronomical</span>
-            </div>
+            <button class="geo-btn" id="geoBtn">⌖ Use my location</button>
+            <p class="loc-note">Timezone is resolved automatically — no network needed.</p>
         </div>
+
+        <div class="scroll-hint" aria-hidden="true">scroll</div>
     </div>
+
+    <!-- ============ DAY SECTION ============ -->
+    <section class="section">
+        <div class="eyebrow reveal">getSunTimes · getTwilight</div>
+        <h2 class="sec-title reveal">Anatomy of a day</h2>
+        <p class="sec-sub reveal">Every threshold the sun crosses — dawns, dusks, golden and blue hours — computed to
+            the second with NREL's Solar Position Algorithm. Drag the dial, or tap a card to jump there.</p>
+        <div class="dial-grid">
+            <div class="dial-wrap reveal">
+                <svg id="dial" viewBox="0 0 360 360" role="img" aria-label="24 hour sun dial"></svg>
+            </div>
+            <div class="cards reveal" id="cards"></div>
+        </div>
+    </section>
+
+    <!-- ============ YEAR SECTION ============ -->
+    <section class="section">
+        <div class="eyebrow reveal">365 × getSunTimes</div>
+        <h2 class="sec-title reveal">A year of light</h2>
+        <p class="sec-sub reveal">Each column is one day, midnight to midnight. Drag across the year and watch the
+            seasons reshape the sky above.</p>
+        <div class="year-wrap reveal">
+            <div class="year-readout" id="yearReadout">&nbsp;</div>
+            <canvas id="yearCanvas" aria-label="Yearly daylight chart"></canvas>
+            <div class="legend" id="legend"></div>
+        </div>
+    </section>
+
+    <!-- ============ FOOTER ============ -->
+    <footer class="footer">
+        <h2 class="sec-title reveal">One import away</h2>
+        <div class="feat-row reveal">
+            <span class="feat">±30 s accuracy</span>
+            <span class="feat">NREL SPA</span>
+            <span class="feat">zero dependencies</span>
+            <span class="feat">TypeScript</span>
+            <span class="feat">Temporal API ready</span>
+        </div>
+        <div class="install reveal">
+            <code id="installCmd">npm install sunrise-sunset-js</code>
+            <button class="icon-btn" id="copyBtn" aria-label="Copy install command">⧉</button>
+        </div>
+        <pre class="code reveal"><code><span class="tk-kw">import</span> { getSunTimes, getSolarPosition } <span class="tk-kw">from</span> <span class="tk-str">'sunrise-sunset-js'</span>;
+
+<span class="tk-cm">// every threshold of the day, in one call</span>
+<span class="tk-kw">const</span> t = <span class="tk-fn">getSunTimes</span>(<span class="tk-num">51.5074</span>, <span class="tk-num">-0.1278</span>, <span class="tk-kw">new</span> <span class="tk-fn">Date</span>(), {
+  timezoneId: <span class="tk-str">'Europe/London'</span>,
+});
+
+t.sunrise;                              <span class="tk-cm">// Date</span>
+t.twilight.goldenHour.evening.start;    <span class="tk-cm">// Date</span>
+
+<span class="tk-cm">// live solar position</span>
+<span class="tk-fn">getSolarPosition</span>(<span class="tk-num">51.5074</span>, <span class="tk-num">-0.1278</span>);
+<span class="tk-cm">// → { elevation: 61.9, azimuth: 180.3, … }</span></code></pre>
+        <div class="foot-links reveal">
+            <a href="https://github.com/udivankin/sunrise-sunset" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.npmjs.com/package/sunrise-sunset-js" target="_blank" rel="noopener">npm</a>
+            <a href="https://midcdmz.nrel.gov/spa/" target="_blank" rel="noopener">NREL SPA</a>
+        </div>
+    </footer>
 
 </body>
 

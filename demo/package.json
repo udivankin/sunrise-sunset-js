@@ -1,20 +1,21 @@
 {
-  "name": "demo",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "sunrise-sunset-demo",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "type-check": "tsc --noEmit"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "dependencies": {
+    "gsap": "^3.13.0",
+    "three": "^0.180.0",
+    "tz-lookup": "^6.1.25"
+  },
   "devDependencies": {
-    "@types/d3": "^7.4.3",
-    "d3": "^7.9.0",
+    "@types/three": "^0.180.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.0"
   }
