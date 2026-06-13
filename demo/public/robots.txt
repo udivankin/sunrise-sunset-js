@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://udivankin.github.io/sunrise-sunset-js/sitemap.xml

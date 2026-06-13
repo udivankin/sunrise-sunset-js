@@ -4,10 +4,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>sunrise-sunset-js — every shade of daylight</title>
+    <title>sunrise-sunset-js — Sunrise, Sunset &amp; Twilight Times for JavaScript</title>
     <meta name="description"
-        content="Interactive demo of sunrise-sunset-js: sunrise, sunset, twilight, golden hour and solar position for any place on Earth, computed with NREL's Solar Position Algorithm.">
+        content="High-precision sunrise, sunset, twilight, golden-hour and solar-position calculation for JavaScript &amp; TypeScript. Interactive demo powered by NREL's Solar Position Algorithm (SPA) — works for any place on Earth.">
+    <link rel="canonical" href="https://udivankin.github.io/sunrise-sunset-js/">
     <meta name="theme-color" content="#05070f">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://udivankin.github.io/sunrise-sunset-js/">
+    <meta property="og:title" content="sunrise-sunset-js — Sunrise, Sunset &amp; Twilight Times for JavaScript">
+    <meta property="og:description"
+        content="High-precision sunrise, sunset, twilight, golden-hour and solar-position calculation for JavaScript &amp; TypeScript, powered by NREL's Solar Position Algorithm.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/udivankin/sunrise-sunset-js/master/demo/screenshot.png">
+    <meta property="og:image:alt" content="sunrise-sunset-js interactive demo showing a WebGL sky at golden hour">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="sunrise-sunset-js — Sunrise, Sunset &amp; Twilight Times for JavaScript">
+    <meta name="twitter:description"
+        content="High-precision sunrise, sunset, twilight, golden-hour and solar-position calculation for JavaScript &amp; TypeScript, powered by NREL's Solar Position Algorithm.">
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/udivankin/sunrise-sunset-js/master/demo/screenshot.png">
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        "name": "sunrise-sunset-js",
+        "description": "High-precision sunrise, sunset, twilight, golden-hour and solar-position calculation for JavaScript & TypeScript, based on NREL's Solar Position Algorithm (SPA).",
+        "url": "https://udivankin.github.io/sunrise-sunset-js/",
+        "codeRepository": "https://github.com/udivankin/sunrise-sunset-js",
+        "programmingLanguage": ["JavaScript", "TypeScript"],
+        "license": "https://opensource.org/licenses/ISC",
+        "author": {
+            "@type": "Person",
+            "name": "Aleksei Udivankin"
+        }
+    }
+    </script>
     <link rel="icon"
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='58' r='22' fill='%23f2c14e'/%3E%3Crect y='80' width='100' height='20' fill='%2305070f'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,6 +57,11 @@
     <!-- ============ HERO ============ -->
     <div class="hero" id="hero">
         <canvas id="sky" aria-hidden="true"></canvas>
+
+        <h1 class="visually-hidden">
+            sunrise-sunset-js — high-precision sunrise, sunset, twilight, golden-hour
+            and solar-position calculation for JavaScript and TypeScript
+        </h1>
 
         <div class="mountains" aria-hidden="true">
             <!-- each layer holds 3 seamless copies of its ridge so the panorama
@@ -47,12 +87,12 @@
         </div>
 
         <header class="topbar">
-            <a class="wordmark" href="https://github.com/udivankin/sunrise-sunset">
+            <a class="wordmark" href="https://github.com/udivankin/sunrise-sunset-js">
                 <span class="wordmark-dot"></span>sunrise-sunset-js
             </a>
             <nav class="top-links">
                 <a href="https://www.npmjs.com/package/sunrise-sunset-js" target="_blank" rel="noopener">npm</a>
-                <a href="https://github.com/udivankin/sunrise-sunset" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://github.com/udivankin/sunrise-sunset-js" target="_blank" rel="noopener">GitHub</a>
             </nav>
         </header>
 
@@ -171,7 +211,7 @@ t.twilight.goldenHour.evening.start;    <span class="tk-cm">// Date</span>
 <span class="tk-fn">getSolarPosition</span>(<span class="tk-num">51.5074</span>, <span class="tk-num">-0.1278</span>);
 <span class="tk-cm">// → { elevation: 61.9, azimuth: 180.3, … }</span></code></pre>
         <div class="foot-links reveal">
-            <a href="https://github.com/udivankin/sunrise-sunset" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://github.com/udivankin/sunrise-sunset-js" target="_blank" rel="noopener">GitHub</a>
             <a href="https://www.npmjs.com/package/sunrise-sunset-js" target="_blank" rel="noopener">npm</a>
             <a href="https://midcdmz.nrel.gov/spa/" target="_blank" rel="noopener">NREL SPA</a>
         </div>

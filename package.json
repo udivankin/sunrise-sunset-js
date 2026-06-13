@@ -43,7 +43,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://udivankin@github.com/udivankin/sunrise-sunset.git"
+    "url": "git+https://github.com/udivankin/sunrise-sunset-js.git"
   },
   "keywords": [
     "sunrise",
@@ -51,6 +51,7 @@
     "sun",
     "suncalc",
     "solar",
+    "solar-position",
     "position",
     "spa",
     "nrel",
@@ -61,7 +62,12 @@
     "coordinates",
     "geolocation",
     "golden-hour",
-    "blue-hour"
+    "blue-hour",
+    "javascript",
+    "typescript",
+    "temporal",
+    "sunrise-time",
+    "sunset-time"
   ],
   "author": {
     "name": "Aleksei Udivankin",
@@ -70,7 +76,7 @@
   },
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/udivankin/sunrise-sunset/issues"
+    "url": "https://github.com/udivankin/sunrise-sunset-js/issues"
   },
-  "homepage": "https://github.com/udivankin/sunrise-sunset#readme"
+  "homepage": "https://github.com/udivankin/sunrise-sunset-js#readme"
 }

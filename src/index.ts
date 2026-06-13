@@ -2,7 +2,7 @@
  * Solar Position Algorithm Constants
  * Based on NREL's Solar Position Algorithm for Solar Radiation Applications
  *
- * @module sunrise-sunset
+ * @module sunrise-sunset-js
  */
 
 import {
