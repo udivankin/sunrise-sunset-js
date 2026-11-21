@@ -201,12 +201,16 @@ export function calculateEotAndSunRiseTransitSet(
 ): RtsResult {
   const h0Prime = -1 * (SUN_RADIUS + spa.atmosphericRefraction);
 
-  // Calculate values at midnight UTC
+  // Calculate values at local midnight, so the day fractions below cover the
+  // requested local calendar day. Starting at midnight UTC would find the
+  // events of the UTC day and then wrap them into the local day, which moves
+  // them to the wrong day when the timezone is not UTC.
   const sunRtsJd = julianDay(
     spa.year,
     spa.month,
     spa.day,
-    0, 0, 0, 0, 0
+    0, 0, 0, 0,
+    spa.timezone
   );
 
   // Get RA/Dec at midnight
@@ -272,7 +276,7 @@ export function calculateEotAndSunRiseTransitSet(
 
   const suntransit = dayfracToLocalHr(
     mRts[SunState.SUN_TRANSIT] - hPrime[SunState.SUN_TRANSIT] / 360.0,
-    spa.timezone
+    0
   );
 
   if (polar) {
@@ -293,12 +297,12 @@ export function calculateEotAndSunRiseTransitSet(
 
   const sunrise = dayfracToLocalHr(
     sunRiseAndSet(mRts, hRts, deltaPrime, spa.latitude, hPrime, h0Prime, SunState.SUN_RISE),
-    spa.timezone
+    0
   );
 
   const sunset = dayfracToLocalHr(
     sunRiseAndSet(mRts, hRts, deltaPrime, spa.latitude, hPrime, h0Prime, SunState.SUN_SET),
-    spa.timezone
+    0
   );
 
   return {
