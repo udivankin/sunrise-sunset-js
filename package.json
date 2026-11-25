@@ -35,11 +35,11 @@
     "prepublishOnly": "npm run tag && npm run type-check && npm run build && npm test"
   },
   "devDependencies": {
-    "@types/node": "24.10.2",
-    "@vitest/coverage-v8": "4.1.8",
-    "rolldown": "1.0.3",
-    "typescript": "5.9.3",
-    "vitest": "4.1.8"
+    "@types/node": "26.6.10",
+    "@vitest/coverage-v8": "5.1.2",
+    "rolldown": "1.3.3",
+    "typescript": "7.0.2",
+    "vitest": "5.1.2"
   },
   "repository": {
     "type": "git",
