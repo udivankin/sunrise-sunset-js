@@ -312,3 +312,35 @@ describe('polar day and night', () => {
     expect(times.twilight!.civilDusk!.toISOString()).toBe('2026-12-21T16:33:39.818Z');
   });
 });
+
+describe('rise, transit and set on the local calendar day', () => {
+  // Reference times from PyEphem (sun centre at -0°50', no pressure), which agrees with
+  // the SPA to a few seconds. Each event falls on the requested local day, but some of them
+  // fall on the UTC day before or after it (e.g. Beijing sunrise is at 22:42 UTC the day before).
+  const cases = [
+    { name: 'Beijing (UTC+8)', lat: 39.9042, lon: 116.4074, timezone: 8, date: '2026-11-01T12:00:00+08:00',
+      sunrise: '2026-10-31T22:42:47Z', solarNoon: '2026-11-01T03:57:57Z', sunset: '2026-11-01T09:12:37Z' },
+    { name: 'Tokyo (UTC+9)', lat: 35.6762, lon: 139.6503, timezone: 9, date: '2024-03-20T12:00:00+09:00',
+      sunrise: '2024-03-19T20:45:06Z', solarNoon: '2024-03-20T02:48:49Z', sunset: '2024-03-20T08:53:06Z' },
+    { name: 'Sydney (UTC+11)', lat: -33.8688, lon: 151.2093, timezone: 11, date: '2024-03-20T12:00:00+11:00',
+      sunrise: '2024-03-19T19:58:21Z', solarNoon: '2024-03-20T02:02:35Z', sunset: '2024-03-20T08:06:18Z' },
+    { name: 'New York (UTC-4)', lat: 40.7128, lon: -74.006, timezone: -4, date: '2024-03-20T12:00:00-04:00',
+      sunrise: '2024-03-20T10:58:30Z', solarNoon: '2024-03-20T17:03:16Z', sunset: '2024-03-20T23:08:42Z' },
+    { name: 'Los Angeles (UTC-7)', lat: 34.0522, lon: -118.2437, timezone: -7, date: '2024-09-22T12:00:00-07:00',
+      sunrise: '2024-09-22T13:41:30Z', solarNoon: '2024-09-22T19:45:23Z', sunset: '2024-09-23T01:48:44Z' },
+  ];
+
+  for (const c of cases) {
+    it(`matches the reference times in ${c.name}`, () => {
+      const date = new Date(c.date);
+      const options = { timezone: c.timezone };
+      const sunrise = getSunrise(c.lat, c.lon, date, options);
+      const solarNoon = getSolarNoon(c.lat, c.lon, date, options);
+      const sunset = getSunset(c.lat, c.lon, date, options);
+
+      expect(Math.abs(sunrise!.getTime() - Date.parse(c.sunrise))).toBeLessThan(15000);
+      expect(Math.abs(solarNoon!.getTime() - Date.parse(c.solarNoon))).toBeLessThan(15000);
+      expect(Math.abs(sunset!.getTime() - Date.parse(c.sunset))).toBeLessThan(15000);
+    });
+  }
+});
