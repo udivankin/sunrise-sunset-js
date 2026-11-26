@@ -215,35 +215,35 @@ export function getTwilight(
   // Calculate twilight times using custom zenith angles
   const civil = calculateCustomZenithTimes(
     latitude,
-    spa.delta,
+    spa.deltaTransit,
     spa.suntransit,
     ZENITH_CIVIL_TWILIGHT
   );
 
   const nautical = calculateCustomZenithTimes(
     latitude,
-    spa.delta,
+    spa.deltaTransit,
     spa.suntransit,
     ZENITH_NAUTICAL_TWILIGHT
   );
 
   const astronomical = calculateCustomZenithTimes(
     latitude,
-    spa.delta,
+    spa.deltaTransit,
     spa.suntransit,
     ZENITH_ASTRONOMICAL_TWILIGHT
   );
 
   const golden = calculateCustomZenithTimes(
     latitude,
-    spa.delta,
+    spa.deltaTransit,
     spa.suntransit,
     ZENITH_GOLDEN_HOUR
   );
 
   const blue = calculateCustomZenithTimes(
     latitude,
-    spa.delta,
+    spa.deltaTransit,
     spa.suntransit,
     ZENITH_BLUE_HOUR
   );
@@ -340,35 +340,35 @@ export function getSunTimes(
   if (isValidSunTime(spa.suntransit)) {
     const civil = calculateCustomZenithTimes(
       latitude,
-      spa.delta,
+      spa.deltaTransit,
       spa.suntransit,
       ZENITH_CIVIL_TWILIGHT
     );
 
     const nautical = calculateCustomZenithTimes(
       latitude,
-      spa.delta,
+      spa.deltaTransit,
       spa.suntransit,
       ZENITH_NAUTICAL_TWILIGHT
     );
 
     const astronomical = calculateCustomZenithTimes(
       latitude,
-      spa.delta,
+      spa.deltaTransit,
       spa.suntransit,
       ZENITH_ASTRONOMICAL_TWILIGHT
     );
 
     const golden = calculateCustomZenithTimes(
       latitude,
-      spa.delta,
+      spa.deltaTransit,
       spa.suntransit,
       ZENITH_GOLDEN_HOUR
     );
 
     const blue = calculateCustomZenithTimes(
       latitude,
-      spa.delta,
+      spa.deltaTransit,
       spa.suntransit,
       ZENITH_BLUE_HOUR
     );

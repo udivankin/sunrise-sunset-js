@@ -175,6 +175,7 @@ export interface SpaData {
   srha: number;        // Sunrise hour angle [degrees]
   ssha: number;        // Sunset hour angle [degrees]
   sta: number;         // Sun transit altitude [degrees]
+  deltaTransit: number; // Geocentric sun declination at transit [degrees]
 
   // Output values
   zenith: number;       // Topocentric zenith angle [degrees]
