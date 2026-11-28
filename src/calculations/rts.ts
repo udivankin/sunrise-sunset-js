@@ -185,6 +185,8 @@ export interface RtsResult {
   sta: number;
   /** Equation of time in minutes */
   eot: number;
+  /** Geocentric sun declination at transit in degrees */
+  deltaTransit: number;
 }
 
 /**
@@ -289,6 +291,7 @@ export function calculateEotAndSunRiseTransitSet(
       ssha: INVALID_VALUE,
       sta,
       eot,
+      deltaTransit: deltaPrime[SunState.SUN_TRANSIT],
     };
   }
 
@@ -313,6 +316,7 @@ export function calculateEotAndSunRiseTransitSet(
     ssha,
     sta,
     eot,
+    deltaTransit: deltaPrime[SunState.SUN_TRANSIT],
   };
 }
 

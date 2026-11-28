@@ -122,6 +122,7 @@ export function createSpaData(): SpaData {
     srha: 0,
     ssha: 0,
     sta: 0,
+    deltaTransit: 0,
 
     // Output values
     zenith: 0,
@@ -333,6 +334,7 @@ export function spaCalculate(spa: SpaData): number {
     spa.ssha = rts.ssha;
     spa.sta = rts.sta;
     spa.eot = rts.eot;
+    spa.deltaTransit = rts.deltaTransit;
   }
 
   return 0;

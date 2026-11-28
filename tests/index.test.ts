@@ -308,8 +308,8 @@ describe('polar day and night', () => {
     expect(times.sunrise!.toISOString()).toBe('2026-12-21T08:03:43.968Z');
     expect(times.solarNoon!.toISOString()).toBe('2026-12-21T11:58:34.713Z');
     expect(times.sunset!.toISOString()).toBe('2026-12-21T15:53:25.078Z');
-    expect(times.twilight!.civilDawn!.toISOString()).toBe('2026-12-21T07:23:29.608Z');
-    expect(times.twilight!.civilDusk!.toISOString()).toBe('2026-12-21T16:33:39.818Z');
+    expect(times.twilight!.civilDawn!.toISOString()).toBe('2026-12-21T07:23:29.607Z');
+    expect(times.twilight!.civilDusk!.toISOString()).toBe('2026-12-21T16:33:39.819Z');
   });
 });
 
@@ -341,6 +341,28 @@ describe('rise, transit and set on the local calendar day', () => {
       expect(Math.abs(sunrise!.getTime() - Date.parse(c.sunrise))).toBeLessThan(15000);
       expect(Math.abs(solarNoon!.getTime() - Date.parse(c.solarNoon))).toBeLessThan(15000);
       expect(Math.abs(sunset!.getTime() - Date.parse(c.sunset))).toBeLessThan(15000);
+    });
+  }
+});
+
+describe('twilight on the local calendar day', () => {
+  // Sunrise, sunset and solar noon only depend on the date, not on the time of day passed in.
+  // Twilight, golden hour and blue hour must behave the same way.
+  const cases = [
+    { name: 'London on the equinox', lat: 51.5074, lon: -0.1278, day: '2026-03-20' },
+    { name: 'Reykjavik in May', lat: 64.1466, lon: -21.9426, day: '2026-05-18' },
+  ];
+
+  for (const c of cases) {
+    it(`does not depend on the time of day in ${c.name}`, () => {
+      const at = (time: string) => new Date(`${c.day}T${time}Z`);
+      const noon = getTwilight(c.lat, c.lon, at('12:00:00'), UTC);
+      expect(noon).not.toBeNull();
+
+      for (const time of ['00:00:00', '06:00:00', '23:59:00']) {
+        expect(getTwilight(c.lat, c.lon, at(time), UTC), time).toEqual(noon);
+        expect(getSunTimes(c.lat, c.lon, at(time), UTC).twilight, time).toEqual(noon);
+      }
     });
   }
 });
